@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using Parking.Domain.Config
+@using Parking.Domain.Models
+@using BlazorBootstrap
+
+@inject ClientConfiguration config
+
+<Toasts class="p-3" Messages="messages" AutoHide="true" Delay="6000" Placement="ToastsPlacement.TopRight" />
+
+@code {
+    private HubConnection? _hubConnection;
+
+    List<ToastMessage> messages = new List<ToastMessage>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+                .WithUrl(config.SignalRUrl)
+                .Build();
+
+        _hubConnection.On<GateEventHubModel>("gate-events-hub-response", message =>
+        {
+            if (message.Errors.Count > 0)
+            {
+                CreateToastMessage("Gate Event Error", string.Join("; ", message.Errors), message.Request.GateId.ToString(), ToastType.Danger);
+            }
+            else
+            {
+                CreateToastMessage("Gate Event Success", $"SessionId: {message.Response.ToString()}", message.Request.GateId.ToString(), ToastType.Success);
+            }
+
+            InvokeAsync(StateHasChanged);
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    private void CreateToastMessage(string title, string message, string gateId, ToastType toastType)
+    => messages.Add(new ToastMessage
+                            {
+                                Type = toastType,
+                                Title = title,
+                                HelpText = $"GateID: {gateId}",
+                                Message = message,
+                            });
+}

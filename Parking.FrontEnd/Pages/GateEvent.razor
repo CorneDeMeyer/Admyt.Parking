@@ -1,0 +1,80 @@
+﻿@using Parking.FrontEnd.ClientService.Interface
+@using System.Text.RegularExpressions
+
+@inject IGateClientService _gateClientService;
+
+<h3>Create Gate Event</h3>
+
+<form method="post" @onsubmit="Submit" FormName="GateEventHandler">
+    <div>
+        <label>
+            Gate Id: @_gateId
+        </label>
+        <br />
+        <label>
+            Time: @_displayDate
+        </label>
+        <br />
+        <label>
+            Number Plate: 
+            <input @bind-value="plateText" />
+        </label>
+        <br />
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </div>
+</form>
+
+@code {
+    // This will be a gate terminal
+    private readonly Guid _gateId = Guid.Parse("eb34d451-08c9-4ec0-9f56-909eb59f0741");
+    private readonly string customLastCharacterLicensePlateRegex = "[A-Z]{1,2}$"; // Custom Licence Plate Ensure the last 2 character are letter to a province
+    private readonly string customFirstCharacterLicensePlateRegex = "[A-Z]{2,}"; // Custom Licence Plate Ensure the first 2 character are letter to a province
+    private List<string> errors = new();
+
+    private string? _displayDate;
+    private Timer? secondstimer;
+
+    [SupplyParameterFromForm]
+    public string plateText { get; set; } = "";
+
+    private async Task Submit()
+    {
+        errors = new();
+        if (plateText.Length > 1 && (ValidLicensePlate(customLastCharacterLicensePlateRegex) 
+                                  || ValidLicensePlate(customFirstCharacterLicensePlateRegex)))
+        {
+            var response = await _gateClientService.ProcessGateRequest(new Domain.Models.GateEvent
+            {
+                GateId = _gateId,
+                TimeStamp = DateTime.UtcNow,
+                PlateText = plateText
+            });
+        }
+        else
+        {
+            errors.Add($"License Plate {plateText} is not a valid License plate");
+        }
+    }
+
+    /// <summary>
+    /// Regex Validation on [A-Z](2 Characters)[0-9](2 Characters)[A-Z](2 Characters)[A-Z](2 Characters)
+    /// </summary>
+    /// <returns>Is Valid License Plate</returns>
+    private bool ValidLicensePlate(string regex)
+    {
+        var rg = new Regex(regex);
+
+        var match = rg.Match(plateText.ToUpper()
+                                      .Replace(" ", string.Empty)
+                                      .Replace("-", string.Empty));
+
+        return match.Success;
+    }
+
+    protected override void OnInitialized()
+    {
+        _displayDate = DateTime.Now.ToString("hh:mm:ss tt");
+    }
+}

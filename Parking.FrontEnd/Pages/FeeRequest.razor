@@ -1,0 +1,24 @@
+﻿<h3>Parking Fee Request</h3>
+
+<form method="post" @onsubmit="Submit" FormName="GateEventHandler">
+    <div>
+        <label>
+            Number Plate:
+            <input @bind-value="plateText" />
+        </label>
+        <br />
+        <div>
+            <button type="submit">Submit</button>
+        </div>
+    </div>
+</form>
+
+@code {
+    [SupplyParameterFromForm]
+    public string plateText { get; set; } = "";
+
+    private void Submit()
+    {
+
+    }
+}

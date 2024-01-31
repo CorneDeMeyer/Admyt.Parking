@@ -5,7 +5,7 @@ using Parking.Domain.Models;
 namespace Parking.API.Controllers
 {
     [ApiController]
-    [Route("api/{controller}")]
+    [Route("api/[controller]")]
     public class GateController(IGateService gateService) : Controller
     {
         private readonly IGateService _gateService = gateService;

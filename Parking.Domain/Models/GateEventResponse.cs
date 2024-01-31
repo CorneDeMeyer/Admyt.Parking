@@ -2,12 +2,7 @@
 {
     public class GateEventResponse<T>
     {
-        public List<string> Errors { get; set; }
-        public T Value { get; set; }
-
-        public GateEventResponse()
-        {
-            Errors = new List<string>();
-        }
+        public List<string> Errors { get; set; } = new();
+        public T? Value { get; set; }
     }
 }

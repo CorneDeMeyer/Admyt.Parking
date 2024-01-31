@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parking.API", "Parking\Parking.API.csproj", "{E99FC623-8BCB-4828-8578-842A5F0EA115}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parking.API", "Parking\Parking.API.csproj", "{E99FC623-8BCB-4828-8578-842A5F0EA115}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parking.Domain", "Parking.Domain\Parking.Domain.csproj", "{DB974168-256A-40F1-8ABE-11C6BB633BFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parking.Domain", "Parking.Domain\Parking.Domain.csproj", "{DB974168-256A-40F1-8ABE-11C6BB633BFC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parking.DomainLogic", "Parking.DomainLogic\Parking.DomainLogic.csproj", "{6D251107-5EE3-4E7C-A8EE-2703D0B206BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parking.DomainLogic", "Parking.DomainLogic\Parking.DomainLogic.csproj", "{6D251107-5EE3-4E7C-A8EE-2703D0B206BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parking.Repository", "Parking.Repository\Parking.Repository.csproj", "{BB62B117-D6EF-4467-8C4E-8F2DADD138F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Parking.Repository", "Parking.Repository\Parking.Repository.csproj", "{BB62B117-D6EF-4467-8C4E-8F2DADD138F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Parking.FrontEnd", "Parking.FrontEnd\Parking.FrontEnd.csproj", "{8798E35E-961A-407A-BF61-79CBED0D2140}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{BB62B117-D6EF-4467-8C4E-8F2DADD138F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BB62B117-D6EF-4467-8C4E-8F2DADD138F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BB62B117-D6EF-4467-8C4E-8F2DADD138F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8798E35E-961A-407A-BF61-79CBED0D2140}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8798E35E-961A-407A-BF61-79CBED0D2140}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8798E35E-961A-407A-BF61-79CBED0D2140}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8798E35E-961A-407A-BF61-79CBED0D2140}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

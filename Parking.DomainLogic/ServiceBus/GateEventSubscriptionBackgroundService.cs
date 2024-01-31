@@ -82,13 +82,10 @@ namespace Parking.DomainLogic.ServiceBus
                         {
                             LogGateEventErrors(request, response);
                         }
-                        else
-                        {
-                            await _signalRCommunication.Clients.All.SendAsync(hubMethod,
-                                response.Errors.Count > 0 
-                                    ? response.Errors
-                                    : response.Value);
-                        }
+
+                        await _signalRCommunication.Clients.All.SendAsync(hubMethod,
+                                new GateEventHubModel(request, response.Value, response.Errors));
+
                         break;
                     default:
                         break;
