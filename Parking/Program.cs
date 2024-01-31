@@ -4,11 +4,14 @@ using Parking.Repository.Repository;
 using Parking.Repository.Interface;
 using Parking.DomainLogic.Service;
 using Parking.DomainLogic.Hubs;
+using Parking.Domain.Config;
+using Parking.DomainLogic.ServiceBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Connection String
 var connectionString = builder.Configuration.GetConnectionString("MyDatabaseConnection");
+var azureServiceBusConfig = builder.Configuration.GetValue<AzureServiceBusConfiguration>("AzureServiceBusConfig");
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -26,6 +29,12 @@ builder.Services.AddTransient<IZoneRepository, ZoneRepository>();
 
 // Setup Services
 builder.Services.AddTransient<IGateService, GateService>();
+
+// Background Service
+if (azureServiceBusConfig != null && azureServiceBusConfig.Enabled)
+{
+    builder.Services.AddHostedService<GateEventSubscriptionBackgroundService>();
+}
 
 var app = builder.Build();
 

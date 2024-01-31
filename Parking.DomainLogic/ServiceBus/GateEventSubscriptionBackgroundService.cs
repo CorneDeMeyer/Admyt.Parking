@@ -1,12 +1,12 @@
 ﻿using Parking.DomainLogic.Interface;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Parking.DomainLogic.Service;
-using Parking.Domain.Config;
 using Azure.Messaging.ServiceBus;
-using Parking.Domain.Models;
-using Microsoft.AspNetCore.SignalR;
 using Parking.DomainLogic.Hubs;
+using Parking.Domain.Config;
+using Parking.Domain.Models;
 
 namespace Parking.DomainLogic.ServiceBus
 {
