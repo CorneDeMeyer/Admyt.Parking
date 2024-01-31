@@ -11,7 +11,7 @@
 - [License](#License)
 
 ## Badges
-![Build Status](https://github.com/CorneDeMeyer/Admyt.Parking/actions/workflows/dotnet.yml/badge.svg?branch=main)
+![Build Status](https://github.com/CorneDeMeyer/Admyt.Parking/actions/workflows/dotnet.yml/badge.svg?branch=master)
 
 ## Technology
 Making use of the following Libraries:
