@@ -4,7 +4,7 @@ namespace Parking.DomainLogic.Interface
 {
     public interface IGateService
     {
-        Task<Guid> ProcessEntryRequest(GateEvent gateEvent);
-        Task<double> ProcessExitResponse(GateEvent gateEvent);
+        Task<GateEventResponse<Guid>> ProcessGateRequest(GateEvent gateEvent);
+        Task<GateEventResponse<double>> CalculateFee(string plateText);
     }
 }

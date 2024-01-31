@@ -13,12 +13,12 @@
         /// <summary>
         /// Gate Id
         /// </summary>
-        public Guid GateId { get; set; }
+        public required Guid GateId { get; set; }
 
         /// <summary>
         /// Time of the event
         /// </summary>
-        public DateTime TimeStamp { get; set; }
+        public required DateTime TimeStamp { get; set; }
 
         /// <summary>
         /// Plate text of the vehicle as read by LPR

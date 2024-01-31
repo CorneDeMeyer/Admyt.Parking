@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Builder;
-using Parking.DomainLogic.Hubs;
-using Parking.Repository.Interface;
-using Parking.Repository.Repository;
 using Parking.Repository.Repository.Base;
+using Parking.DomainLogic.Interface;
+using Parking.Repository.Repository;
+using Parking.Repository.Interface;
+using Parking.DomainLogic.Service;
+using Parking.DomainLogic.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +17,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSignalR();
 
-var app = builder.Build();
-
 // Setup Repository
 builder.Services.AddSingleton(new RepositoryConfiguration(connectionString));
 builder.Services.AddTransient<IParkingSessionRepository, ParkingSessionRepository>();
@@ -26,7 +25,9 @@ builder.Services.AddTransient<IGateEventRepository, GateEventRepository>();
 builder.Services.AddTransient<IZoneRepository, ZoneRepository>();
 
 // Setup Services
+builder.Services.AddTransient<IGateService, GateService>();
 
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -36,7 +37,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAntiforgery();
 
 // Map Signal R hub
 app.MapHub<CommunicationHub>("/commands");
