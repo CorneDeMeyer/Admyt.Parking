@@ -126,3 +126,19 @@ code {
     background-color: #2196F3;
     padding: 10px;
 }
+
+.error-section {
+    color: red;
+    font-size: 10px;
+    font-weight: bold;
+    background-color: grey;
+    border: .1em solid grey;
+}
+
+.result-section {
+    color: green;
+    font-size: 10px;
+    font-weight: bold;
+    background-color: grey;
+    border: .1em solid grey;
+}

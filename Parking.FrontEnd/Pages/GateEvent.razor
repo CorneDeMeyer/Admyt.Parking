@@ -20,6 +20,25 @@
             Number Plate: 
             <input @bind-value="plateText" />
         </label>
+        @if (errors != null && errors.Count > 0)
+        {
+            <div class="error-section">
+                <ul>
+                    @foreach (var error in errors)
+                    {
+                        <li>error</li>
+                    }
+                </ul>
+            </div>
+        }
+        @if (responseGuid != null)
+        {
+            <div class="result-section">
+                <label>
+                    Session Id: @responseGuid.Value
+                </label>
+            </div>
+        }
         <br />
         <div>
             <button type="submit">Submit</button>
@@ -29,8 +48,8 @@
 
 @code {
     // This will be a gate terminal
-    private readonly Guid _gateId = Guid.Parse("eb34d451-08c9-4ec0-9f56-909eb59f0741");
-    
+    private readonly Guid _gateId = Guid.Parse("7c3dc213-0203-488d-b65d-299b04d6f06c");
+    private Guid? responseGuid = null;
     private List<string> errors = new();
 
     private string? _displayDate;
@@ -42,6 +61,7 @@
     private async Task Submit()
     {
         errors = new();
+        responseGuid = null;
         if (plateText.Length > 1 && plateText.ValidLicensePlate())
         {
             var response = await _gateClientService.ProcessGateRequest(new Domain.Models.GateEvent
@@ -50,6 +70,15 @@
                 TimeStamp = DateTime.UtcNow,
                 PlateText = plateText
             });
+
+            if (response.Errors.Count > 0)
+            {
+                errors = response.Errors;
+            }
+            else
+            {
+                responseGuid = response.Value;
+            }
         }
         else
         {

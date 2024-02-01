@@ -19,6 +19,11 @@ namespace Parking.FrontEnd.ClientService
             {
                 using (var client = new HttpClient())
                 {
+                    #if DEBUG   
+                    client.Timeout = TimeSpan.FromMinutes(30);
+                    #else
+                       client.Timeout = TimeSpan.FromMinutes(3); 
+                    #endif
                     var request = await client.GetAsync($"{_config.WebApi}Gate/calculate-fee?plateText={plateText}");
 
                     if (request.IsSuccessStatusCode)
@@ -46,11 +51,17 @@ namespace Parking.FrontEnd.ClientService
 
             try
             {
-                using (var http = new HttpClient())
+                using (var client = new HttpClient())
                 {
+                    #if DEBUG
+                        client.Timeout = TimeSpan.FromMinutes(30);
+                    #else
+                       client.Timeout = TimeSpan.FromMinutes(3); 
+                    #endif
+
                     using StringContent jsonContent = new(JsonSerializer.Serialize(gateEvent), Encoding.UTF8, "application/json");
 
-                    var request = await http.PostAsync($"{_config.WebApi}Gate/gate-events", jsonContent);
+                    var request = await client.PostAsync($"{_config.WebApi}Gate/gate-events", jsonContent);
 
                     if (request.IsSuccessStatusCode)
                     {
