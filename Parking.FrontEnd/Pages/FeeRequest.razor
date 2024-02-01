@@ -1,4 +1,9 @@
-﻿<h3>Parking Fee Request</h3>
+﻿@using Parking.FrontEnd.ClientService.Interface
+@using Parking.FrontEnd.ClientService
+
+@inject IGateClientService _gateClientService;
+
+<h3>Parking Fee Request</h3>
 
 <form method="post" @onsubmit="Submit" FormName="GateEventHandler">
     <div>
@@ -10,15 +15,57 @@
         <div>
             <button type="submit">Submit</button>
         </div>
+        @if (errors != null && errors.Count > 0)
+        {
+            <div class="error-section">
+                <ul>
+                    @foreach (var error in errors)
+                    {
+                        <li>error</li>
+                    }
+                </ul>
+            </div>
+        }
+        @if (responseFee.HasValue)
+        {
+            <div class="result-section">
+                <label>
+                    Fee: R @responseFee.Value.ToString("0.00");
+                </label>
+            </div>
+        }
     </div>
 </form>
 
 @code {
+
     [SupplyParameterFromForm]
     public string plateText { get; set; } = "";
 
-    private void Submit()
-    {
+    private double? responseFee = null;
+    private List<string> errors = new();
 
+    private async Task Submit()
+    {
+        errors = new();
+        responseFee = null;
+
+        if (!string.IsNullOrEmpty(plateText) && plateText.ValidLicensePlate())
+        {
+            var response = await _gateClientService.CalculateFee(plateText);
+
+            if (response.Errors.Count > 0)
+            {
+                errors = response.Errors;
+            }
+            else
+            {
+                responseFee = response.Value;
+            }
+        }
+        else
+        {
+            errors.Add($"License Plate {plateText} is not a valid plate");
+        }
     }
 }

@@ -1,6 +1,5 @@
 ﻿@using Parking.FrontEnd.ClientService.Interface
 @using Parking.FrontEnd.ClientService
-@using System.Text.RegularExpressions
 
 @inject IGateClientService _gateClientService;
 
@@ -31,7 +30,7 @@
                 </ul>
             </div>
         }
-        @if (responseGuid != null)
+        @if (responseGuid.HasValue)
         {
             <div class="result-section">
                 <label>
