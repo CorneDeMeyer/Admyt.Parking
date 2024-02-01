@@ -1,11 +1,11 @@
 using Parking.Repository.Repository.Base;
+using Parking.DomainLogic.ServiceBus;
 using Parking.DomainLogic.Interface;
 using Parking.Repository.Repository;
 using Parking.Repository.Interface;
 using Parking.DomainLogic.Service;
 using Parking.DomainLogic.Hubs;
 using Parking.Domain.Config;
-using Parking.DomainLogic.ServiceBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +36,15 @@ if (azureServiceBusConfig != null && azureServiceBusConfig.Enabled)
     builder.Services.AddHostedService<GateEventSubscriptionBackgroundService>();
 }
 
+// CORS Service
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAnyCorsPolicy", builder => 
+         builder
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -45,8 +54,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowAnyCorsPolicy");
 
+app.UseHttpsRedirection();
+ 
 // Map Signal R hub
 app.MapHub<CommunicationHub>("/commands");
 

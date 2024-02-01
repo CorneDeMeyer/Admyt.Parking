@@ -9,6 +9,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Add Blazor Registered Services
+builder.Services.AddBlazorBootstrap();
+
 // Add Configurations
 builder.Services.AddSingleton(new ClientConfiguration(
     builder.Configuration.GetValue<string>("API_URL") ?? string.Empty,

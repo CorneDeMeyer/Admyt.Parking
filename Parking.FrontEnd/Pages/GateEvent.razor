@@ -1,4 +1,5 @@
 ﻿@using Parking.FrontEnd.ClientService.Interface
+@using Parking.FrontEnd.ClientService
 @using System.Text.RegularExpressions
 
 @inject IGateClientService _gateClientService;
@@ -29,8 +30,7 @@
 @code {
     // This will be a gate terminal
     private readonly Guid _gateId = Guid.Parse("eb34d451-08c9-4ec0-9f56-909eb59f0741");
-    private readonly string customLastCharacterLicensePlateRegex = "[A-Z]{1,2}$"; // Custom Licence Plate Ensure the last 2 character are letter to a province
-    private readonly string customFirstCharacterLicensePlateRegex = "[A-Z]{2,}"; // Custom Licence Plate Ensure the first 2 character are letter to a province
+    
     private List<string> errors = new();
 
     private string? _displayDate;
@@ -42,8 +42,7 @@
     private async Task Submit()
     {
         errors = new();
-        if (plateText.Length > 1 && (ValidLicensePlate(customLastCharacterLicensePlateRegex) 
-                                  || ValidLicensePlate(customFirstCharacterLicensePlateRegex)))
+        if (plateText.Length > 1 && plateText.ValidLicensePlate())
         {
             var response = await _gateClientService.ProcessGateRequest(new Domain.Models.GateEvent
             {
@@ -56,21 +55,6 @@
         {
             errors.Add($"License Plate {plateText} is not a valid License plate");
         }
-    }
-
-    /// <summary>
-    /// Regex Validation on [A-Z](2 Characters)[0-9](2 Characters)[A-Z](2 Characters)[A-Z](2 Characters)
-    /// </summary>
-    /// <returns>Is Valid License Plate</returns>
-    private bool ValidLicensePlate(string regex)
-    {
-        var rg = new Regex(regex);
-
-        var match = rg.Match(plateText.ToUpper()
-                                      .Replace(" ", string.Empty)
-                                      .Replace("-", string.Empty));
-
-        return match.Success;
     }
 
     protected override void OnInitialized()
