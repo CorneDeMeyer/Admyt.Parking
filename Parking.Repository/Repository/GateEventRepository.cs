@@ -25,6 +25,13 @@ namespace Parking.Repository.Repository
                     { "@GateId", gateId},
                 });
 
+        public Task<IEnumerable<GateEvent>> GetByParkingSessionId(Guid parkingSessionId) =>
+            ExecuteQueriesAsync<GateEvent>(StoredProcedure.GateEvent.GetByParkingSessionId,
+                new Dictionary<string, object>
+                {
+                    { "@ParkingSessionId", parkingSessionId }
+                });
+
         public Task<IEnumerable<GateEvent>> GetByPlate(string plateText) =>
             ExecuteQueriesAsync<GateEvent>(StoredProcedure.GateEvent.GetByPlateId,
                 new Dictionary<string, object>

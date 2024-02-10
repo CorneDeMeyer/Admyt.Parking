@@ -1,6 +1,6 @@
 ﻿namespace Parking.Repository
 {
-    public static class StoredProcedure
+    internal static class StoredProcedure
     {
         public static class Gate
         {
@@ -16,6 +16,7 @@
             public const string GetByGateId = "dbo.[GetByGateIdGateEvent]";
             public const string GetByPlateId = "dbo.[GetByPlateIdGateEvent]";
             public const string GetLatestByPlateId = "dbo.[GetLatestByPlateIdGateEvent]";
+            public const string GetByParkingSessionId = "dbo.[GetGateEventsByParkingSession]";
         }
 
         public static class ParkingSession

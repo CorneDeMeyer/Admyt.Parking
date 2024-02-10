@@ -29,59 +29,56 @@ namespace Parking.DomainLogic.Service
 
             try
             {
-                var gateEventsForPlate = await _gateEventRepository.GetByPlate(plateText);
+                var latestParkingSessionForPlate = await _parkingSessionRepository.GetByPlate(plateText);
 
-                if (gateEventsForPlate != null && gateEventsForPlate.Any())
+                if (latestParkingSessionForPlate != null)
                 {
-                    var gates = await _gateRepository.GetAll();
-                    // Getting the latest Entry Date ! Does not pay for more than 1 parking zone (ONLY pays for zone latest parked zone)
-                    var latestEntry = gateEventsForPlate
-                        .OrderByDescending(r => r.TimeStamp)
-                        .FirstOrDefault(
-                            gatesEvent => gates.Any(g => g.Id == gatesEvent.GateId && g.Type == GateType.Entry));
+                    var gateEventsForSession = await _gateEventRepository.GetByParkingSessionId(latestParkingSessionForPlate.Id);
 
-                    if (latestEntry != null)
+                    if (gateEventsForSession != null && gateEventsForSession.Any())
                     {
-                        // Get Latest Session
-                        var session = await _parkingSessionRepository.GetByPlate(plateText);
-                        if (session != null)
-                        {
-                            // Get Gate Entry to determine latest 
-                            var entryGate = gates.Where(gate => gate.Id == latestEntry.Id).First();
-                            var exitAfterLatestEntry = gateEventsForPlate
-                            .OrderByDescending(r => r.TimeStamp)
-                            .FirstOrDefault(
-                                gatesEvent => gatesEvent.TimeStamp >= latestEntry.TimeStamp
-                                           && gates.Any(g => g.Id == gatesEvent.GateId && g.Type == GateType.Exit));
+                        var gateEventsInOrder = gateEventsForSession.OrderBy(e => e.TimeStamp).ToArray();
 
-                            var timeSpent = ((exitAfterLatestEntry != null
-                                              ? exitAfterLatestEntry.TimeStamp
-                                              : DateTime.UtcNow) - latestEntry.TimeStamp);
-                            if (timeSpent.TotalMinutes <= 15)
+                        for (var ge = 0; ge < gateEventsInOrder.Length; ge++)
+                        {
+                            var currentGateEvent = gateEventsInOrder[ge];
+                            var nextGateEvent = ge + 1 < gateEventsInOrder.Length 
+                                ? gateEventsInOrder[ge + 1]
+                                : null;
+
+                            // Get Out of loop when session has been completed
+                            if (nextGateEvent == null && latestParkingSessionForPlate.Status == SessionStatus.Completed)
                             {
-                                response.Value = 0.00f;
+                                break;
+                            }
+
+                            var gate = await _gateRepository.GetById(currentGateEvent.GateId);
+                            if (gate != null)
+                            {
+                                var zone = await _zoneRepository.GetById(gate.ZoneId);
+                                if (zone != null)
+                                {
+                                    response.Value += CalculateSessionFee(currentGateEvent.TimeStamp, nextGateEvent?.TimeStamp ?? DateTime.UtcNow, zone.Rate, zone.Depth);
+                                }
+                                else
+                                {
+                                    response.Errors.Add($"No Zone found for Id: {gate.ZoneId.ToString()}");
+                                }
                             }
                             else
                             {
-                                // Calculate Parking Fee, Ceilling to closest hour
-                                var zone = await _zoneRepository.GetById(entryGate.ZoneId);
-
-                                if (zone != null)
-                                {
-                                    response.Value = zone.Rate * Math.Ceiling(timeSpent.TotalHours); // Ceilling the hour
-                                }
+                                response.Errors.Add($"No Gate found for Id: {currentGateEvent.GateId.ToString()}");
                             }
                         }
-                        else
-                        {
-                            // No Session found, parking is free
-                            response.Value = 0.00f;
-                        }
+                    }
+                    else
+                    {
+                        response.Errors.Add($"No Events found for plate: {plateText}");
                     }
                 }
                 else
                 {
-                    response.Errors.Add($"No Events found for plate: {plateText}");
+                    response.Errors.Add($"No Active Session found for plate: {plateText}");
                 }
             }
             catch (Exception ex)
@@ -91,6 +88,26 @@ namespace Parking.DomainLogic.Service
             }
 
             return response;
+        }
+
+        private double CalculateSessionFee(DateTime startTime, DateTime? endTime, double feePerHour, int level)
+        {
+            var timeSpent = (endTime.HasValue
+                                ? endTime.Value
+                                : DateTime.UtcNow) - startTime;
+
+            // The first 15 minutes are free for sessions completed in depth 0.
+            if (timeSpent.TotalMinutes < 15 && level == 0)
+            {
+                return 0;
+            }
+            // A vehicle is allowed to spend maximum of 5 minutes to 'pass through' a zone before the fee for the zone becomes applicable.
+            else if (timeSpent.TotalMinutes < 5 && level == 0)
+            {
+                return 0;
+            }
+                                                  // A parking zone has a rate per hour, charge is rounded up to the nearest hour.
+            return (double)((decimal)feePerHour * Math.Ceiling((decimal)timeSpent.TotalHours));
         }
 
         public async Task<GateEventResponse<Guid>> ProcessGateRequest(GateEvent gateEvent)
@@ -140,18 +157,34 @@ namespace Parking.DomainLogic.Service
 
             try
             {
-                // Create Session
-                var sessionId = await _parkingSessionRepository.Create(new ParkingSession
+                var gate = await _gateRepository.GetById(gateEvent.GateId);
+                
+                if (gate != null)
                 {
-                    PlateText = gateEvent.PlateText,
-                    Status = SessionStatus.Active
-                });
+                    var zone = await _zoneRepository.GetById(gate.ZoneId);
+                    Guid sessionId;
+                    if (zone != null && zone.Depth == 0)
+                    {
+                        // Create Session
+                        sessionId = await _parkingSessionRepository.Create(new ParkingSession
+                        {
+                            PlateText = gateEvent.PlateText,
+                            Status = SessionStatus.Active
+                        });
+                    }
+                    else
+                    {
+                        // If car currently in parking lot we attach event to same session
+                        var currentSession = await _parkingSessionRepository.GetByPlate(gateEvent.PlateText);
+                        sessionId = currentSession.Id;
+                    }
+                    
+                    // Set Session Id and Create GateEvent
+                    gateEvent.ParkingSessionId = sessionId;
+                    var eventId = await _gateEventRepository.Create(gateEvent);
 
-                // Set Session Id and Create GateEvent
-                gateEvent.ParkingSessionId = sessionId;
-                var eventId = await _gateEventRepository.Create(gateEvent);
-
-                response.Value = sessionId;
+                    response.Value = sessionId;
+                }
             }
             catch (Exception ex)
             {
@@ -172,10 +205,18 @@ namespace Parking.DomainLogic.Service
                 var session = await _parkingSessionRepository.GetByPlate(gateEvent.PlateText);
                 if (session != null)
                 {
-                    // Update Session Parking to be completed
-                    response.Value = session.Id;
-                    session.Status = SessionStatus.Completed;
-                    await _parkingSessionRepository.Update(session);
+                    var gate = await _gateRepository.GetById(gateEvent.GateId);
+                    if (gate != null)
+                    {
+                        var zone = await _zoneRepository.GetById(gate.ZoneId);
+                        if (zone != null && zone.Depth == 0)
+                        {
+                            // A parking session is considered completed if the last gate event was an exit event at depth 0.
+                            response.Value = session.Id;
+                            session.Status = SessionStatus.Completed;
+                            await _parkingSessionRepository.Update(session);
+                        }
+                    }
 
                     // Create GateEvent with Session Id
                     gateEvent.ParkingSessionId = session.Id;
