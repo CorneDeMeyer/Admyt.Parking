@@ -121,15 +121,22 @@ namespace Parking.DomainLogic.Service
                     var gate = await _gateRepository.GetById(gateEvent.GateId);
                     if (gate != null)
                     {
-                        switch (gate.Type)
+                        if (gate.IsActive)
                         {
-                            case GateType.Entry:
-                                return await ManageVehicleEntry(gateEvent);
-                            case GateType.Exit:
-                                return await ManageVehicleExit(gateEvent);
-                            default:
-                                response.Errors.Add($"Gate Id {gateEvent.GateId.ToString()} type ({gate.Type.ToString()}) is not valid.");
-                                break;
+                            switch (gate.Type)
+                            {
+                                case GateType.Entry:
+                                    return await ManageVehicleEntry(gateEvent);
+                                case GateType.Exit:
+                                    return await ManageVehicleExit(gateEvent);
+                                default:
+                                    response.Errors.Add($"Gate Id {gateEvent.GateId.ToString()} type ({gate.Type.ToString()}) is not valid.");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            response.Errors.Add($"Gate Id {gateEvent.GateId.ToString()} is not currently active.");
                         }
                     }
                     else
@@ -161,29 +168,36 @@ namespace Parking.DomainLogic.Service
                 
                 if (gate != null)
                 {
-                    var zone = await _zoneRepository.GetById(gate.ZoneId);
-                    Guid sessionId;
-                    if (zone != null && zone.Depth == 0)
+                    if (gate.IsActive)
                     {
-                        // Create Session
-                        sessionId = await _parkingSessionRepository.Create(new ParkingSession
+                        var zone = await _zoneRepository.GetById(gate.ZoneId);
+                        Guid sessionId;
+                        if (zone != null && zone.Depth == 0)
                         {
-                            PlateText = gateEvent.PlateText,
-                            Status = SessionStatus.Active
-                        });
+                            // Create Session
+                            sessionId = await _parkingSessionRepository.Create(new ParkingSession
+                            {
+                                PlateText = gateEvent.PlateText,
+                                Status = SessionStatus.Active
+                            });
+                        }
+                        else
+                        {
+                            // If car currently in parking lot we attach event to same session
+                            var currentSession = await _parkingSessionRepository.GetByPlate(gateEvent.PlateText);
+                            sessionId = currentSession.Id;
+                        }
+
+                        // Set Session Id and Create GateEvent
+                        gateEvent.ParkingSessionId = sessionId;
+                        var eventId = await _gateEventRepository.Create(gateEvent);
+
+                        response.Value = sessionId;
                     }
                     else
                     {
-                        // If car currently in parking lot we attach event to same session
-                        var currentSession = await _parkingSessionRepository.GetByPlate(gateEvent.PlateText);
-                        sessionId = currentSession.Id;
+                        response.Errors.Add($"Gate Id {gateEvent.GateId.ToString()} is not currently active.");
                     }
-                    
-                    // Set Session Id and Create GateEvent
-                    gateEvent.ParkingSessionId = sessionId;
-                    var eventId = await _gateEventRepository.Create(gateEvent);
-
-                    response.Value = sessionId;
                 }
             }
             catch (Exception ex)

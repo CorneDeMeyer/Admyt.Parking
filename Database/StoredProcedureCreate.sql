@@ -79,7 +79,8 @@ BEGIN
 	SELECT [Id],
 		   [Name],
 		   [Type],
-		   [ZoneId]
+		   [ZoneId],
+		   [IsActive]
 	  FROM dbo.[Gate]
 
 END
@@ -113,7 +114,8 @@ BEGIN
 	SELECT [Id],
 		   [Name],
 		   [Type],
-		   [ZoneId]
+		   [ZoneId],
+		   [IsActive]
 	  FROM dbo.[Gate]
 	 WHERE [Id] = @Id
 

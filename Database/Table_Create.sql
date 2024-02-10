@@ -14,6 +14,8 @@ CREATE TABLE [dbo].[Gate] (
     [Name]   VARCHAR (155)    NOT NULL,
     [Type]   INT              NOT NULL,
     [ZoneId] UNIQUEIDENTIFIER NOT NULL,
+	[IsActive] BIT NOT NULL,
+	CONSTRAINT [df_Gate_IsActive] DEFAULT(1),
 	CONSTRAINT [pk_Gate_Id] PRIMARY KEY ([Id]),
 	CONSTRAINT [fk_Gate_Zoned] FOREIGN KEY ([ZoneId]) REFERENCES [Zone]([Id])
 );

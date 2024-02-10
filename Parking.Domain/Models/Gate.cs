@@ -23,5 +23,10 @@ namespace Parking.Domain.Models
         /// The zone the gate belongs to
         /// </summary>
         public Guid ZoneId { get; set; }
+
+        /// <summary>
+        /// The gate usable 
+        /// </summary>
+        public bool IsActive { get; set; }
     }
 }
